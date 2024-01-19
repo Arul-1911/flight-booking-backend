@@ -7,10 +7,12 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const resetEmailRoutes = require('./routes/resetEmail'); 
+const seedDatabase = require('./scripts/flightData')
 
 // Import routes and models
 const authRoutes = require("./routes/auth");
 const User = require("./models/users");
+const Flight = require("./models/flight");
 
 // Create an Express application
 const app = express();
@@ -25,6 +27,7 @@ const connection = async () => {
   try {
     await mongoose.connect(process.env.DB);
     console.log("DB Connected");
+    // seedDatabase();   //connecting the flightdetails schema
   } catch (error) {
     console.error("Error in connecting to the database:", error);
   }
@@ -90,6 +93,26 @@ app.post("/auth/reset-password", async (req, res) => {
     res.status(500).json("Password reset server error");
   }
 });
+
+//route for fetching flight data
+app.get('/flights', async (req,res) => {
+  try {
+    const {departure , arrival, flightClass } = req.query;
+
+    const filter = {}
+    if(departure) filter.departure = new RegExp(departure.trim(), "i")//trim the whitespace in departure
+    if(arrival) filter.arrival = new RegExp(arrival.trim(),'i'); //trim the whitespace in arrival
+    if (flightClass) filter.class = new RegExp(flightClass.trim(), 'i');
+
+
+    const flights = await Flight.find(filter);
+    res.json(flights);
+
+  } catch (error) {
+    console.error("Error in fetching flight data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+})
 
 // Start the server
 app.listen(port, () => {
