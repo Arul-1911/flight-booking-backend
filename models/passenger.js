@@ -35,6 +35,11 @@ const passengerSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+
+  date:{
+    type:String,
+    required:true
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // Assuming you have a User model for authentication

@@ -124,7 +124,7 @@ app.get("/flights", async (req, res) => {
 
 // Route for submitting passenger details
 app.post("/api/submitTravelDetails", authentication, async (req, res) => {
-  const { adults, children, mainPassenger, flightName, price } = req.body;
+  const { adults, children, mainPassenger, flightName, price, date } = req.body;
 
   try {
     console.log("User ID from middleware:", req.userInfo.userId);
@@ -135,6 +135,7 @@ app.post("/api/submitTravelDetails", authentication, async (req, res) => {
       mainPassenger,
       flightName,
       price,
+      date,
       userId: req.userInfo.userId,
     });
 
