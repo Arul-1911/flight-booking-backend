@@ -31,6 +31,12 @@ const passengerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
+ flightClass:{
+  type: String,
+  required: true,
+ },
+
   price: {
     type: Number,
     required: true,
@@ -39,6 +45,10 @@ const passengerSchema = new mongoose.Schema({
   date:{
     type:String,
     required:true
+  },
+  phoneNumber: { // Add this field
+    type: Number,
+    required: true,
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
