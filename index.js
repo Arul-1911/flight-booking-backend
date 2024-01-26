@@ -9,9 +9,10 @@ const bcrypt = require("bcrypt");
 const resetEmailRoutes = require("./routes/resetEmail");
 const seedDatabase = require("./scripts/flightData");
 const Passenger = require("./models/passenger");
-const stripe = require("stripe")(
-  "sk_test_51OaYUrSFekStM1Bar7vlypn7z1Ma7vrbl7TqlEMLAlYa5fDuMmrgH3hp8BBbsNRbl5wEMfyc5lTAEYiQlNFkMmMS00urw493J7"
-);
+const Razorpay = require("razorpay");
+const crypto = require('crypto');
+
+
 
 // Import routes and models
 const authRoutes = require("./routes/auth");
@@ -121,29 +122,61 @@ app.get("/flights", async (req, res) => {
   }
 });
 
-
 // Route for submitting passenger details
 app.post("/api/submitTravelDetails", authentication, async (req, res) => {
-  const { adults, children, mainPassenger, flightName, price,flightClass, date, phoneNumber } = req.body;
-
   try {
     console.log("User ID from middleware:", req.userInfo.userId);
 
+    // Log the entire req.body for debugging
+    console.log("Request Body:", req.body);
+
+    const {
+      mainPassenger,
+      additionalPassengers,
+      adultss,
+      childrens,
+      flightName,
+      price,
+      flightClass,
+      date,
+    } = req.body;
+    const { Adult, Child } = additionalPassengers;
+    // Log adultDetails and childDetails for debugging
+    // console.log("Adult Details:", adults);
+    console.log("Child Details:", Child);
+
     const passenger = new Passenger({
-      adults,
-      children,
+      adults: adultss,
+      children: childrens,
       mainPassenger: {
-        ...mainPassenger,
+        name: mainPassenger.name,
+        age: mainPassenger.age,
+        gender: mainPassenger.gender,
+        luggage: mainPassenger.luggage,
         phoneNumber: mainPassenger.phoneNumber,
       },
+      adultDetails:
+        Adult?.map((adult) => ({
+          name: adult.name,
+          gender: adult.gender,
+        })) || [],
+      childDetails:
+        Child?.map((child) => ({
+          name: child.name,
+          gender: child.gender,
+        })) || [],
+
       flightName,
       flightClass,
       price,
       date,
-      phoneNumber: mainPassenger.phoneNumber,
       userId: req.userInfo.userId,
     });
 
+    // Log the passenger object before saving
+    console.log("Passenger Object before Save:", passenger);
+
+    // Attempt to save the passenger
     await passenger.save();
 
     res.json({ message: "Passenger details submitted successfully" });
@@ -153,25 +186,51 @@ app.post("/api/submitTravelDetails", authentication, async (req, res) => {
   }
 });
 
-
-//payment route
-app.post("/create-payment-intent", authentication, async (req, res) => {
-  const { amount, currency } = req.body;
-
+//Razorpay instance payment route
+app.post("/order", async (req, res) => {
   try {
-    // Create a payment intent using the Stripe API
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency,
+    const razorpay = new Razorpay({
+      key_id: process.env.YOUR_KEY_ID,
+      key_secret: process.env.YOUR_KEY_SECRET,
     });
 
-    // Respond with the client secret of the payment intent
-    res.json({ clientSecret: paymentIntent.client_secret });
+    const options = req.body;
+    const order = await razorpay.orders.create(options);
+
+    if (!order) {
+      return res.status(500).send("error in order");
+    }
+
+    res.send(order);
   } catch (error) {
-    console.error("Error creating payment intent:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.log(error)
+    res.status(500).send("error")
   }
 });
+
+//Razorpay validation
+app.post('/order/validate', async (req,res) => {
+  try {
+    const {razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    const sha = crypto.createHmac("sha256",process.env.YOUR_KEY_SECRET);
+    //order_id + "|" + razorpay_payment_id
+    sha.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+
+    const digest = sha.digest("hex");
+    if(digest !== razorpay_signature){
+      return res.status(400).json({message:"Transaction is not legit!"})
+    }
+
+    res.json({
+      message:"payment success",
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+    })
+  } catch (error) {
+    console.log(error)
+  }
+})
 
 // Start the server
 app.listen(port, () => {

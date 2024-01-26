@@ -26,33 +26,54 @@ const passengerSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
+    phoneNumber: {
+      type: Number,
+      required: true,
+    },
   },
+  adultDetails: [
+    {
+      name: {
+        type: String,
+        // required: true,
+      },
+      gender: {
+        type: String,
+        // required: true,
+      },
+    },
+  ],
+  childDetails: [
+    {
+      name: {
+        type: String,
+        // required: true,
+      },
+      gender: {
+        type: String,
+        // required: true,
+      },
+    },
+  ],
   flightName: {
     type: String,
     required: true,
   },
-
- flightClass:{
-  type: String,
-  required: true,
- },
-
+  flightClass: {
+    type: String,
+    required: true,
+  },
   price: {
     type: Number,
     required: true,
   },
-
-  date:{
-    type:String,
-    required:true
-  },
-  phoneNumber: { // Add this field
-    type: Number,
+  date: {
+    type: String,
     required: true,
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Assuming you have a User model for authentication
+    ref: 'User',
     required: true,
   },
 });
