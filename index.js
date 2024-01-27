@@ -11,6 +11,7 @@ const seedDatabase = require("./scripts/flightData");
 const Passenger = require("./models/passenger");
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
+const { v4: uuidv4 } = require('uuid');
 
 
 
@@ -122,6 +123,8 @@ app.get("/flights", async (req, res) => {
   }
 });
 
+
+
 // Route for submitting passenger details
 app.post("/api/submitTravelDetails", authentication, async (req, res) => {
   try {
@@ -144,6 +147,10 @@ app.post("/api/submitTravelDetails", authentication, async (req, res) => {
     // Log adultDetails and childDetails for debugging
     // console.log("Adult Details:", adults);
     console.log("Child Details:", Child);
+
+     // Calculate total price based on the number of adults and children
+     const totalPassengers = adultss + childrens;
+     const totalPrice = totalPassengers * price;
 
     const passenger = new Passenger({
       adults: adultss,
@@ -168,7 +175,7 @@ app.post("/api/submitTravelDetails", authentication, async (req, res) => {
 
       flightName,
       flightClass,
-      price,
+      price: totalPrice,  // Use totalPrice instead of the original price
       date,
       userId: req.userInfo.userId,
     });
@@ -182,6 +189,27 @@ app.post("/api/submitTravelDetails", authentication, async (req, res) => {
     res.json({ message: "Passenger details submitted successfully" });
   } catch (error) {
     console.error("Error submitting passenger details:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Add a new route to retrieve the total amount from the database
+app.post("/api/getTotalAmount", authentication, async (req, res) => {
+  try {
+    const { userId } = req.userInfo;
+
+    // Fetch the latest passenger entry for the user
+    const latestPassenger = await Passenger.findOne({ userId }).sort({ _id: -1 });
+
+    if (!latestPassenger) {
+      return res.status(404).json({ error: "Passenger details not found" });
+    }
+
+    const { price: totalPrice } = latestPassenger;
+
+    res.json({ totalPrice });
+  } catch (error) {
+    console.error("Error fetching total amount:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
