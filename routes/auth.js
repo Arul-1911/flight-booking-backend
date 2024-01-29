@@ -41,14 +41,12 @@ router.post("/signin", async (req, res) => {
  // validating the email password in db
   try {
     const user = await User.findOne({ email });
-    // console.log(user);
-    // console.log(user.password);
+   
     if (!user) {
       return res.status(404).json("user not found");
     }
     const passwordMatch = await bcrypt.compare(password, user.password);
-//  console.log(password);
-//  console.log(user.password);
+
     if (!passwordMatch) {
       return res.status(401).json("Invalid Password");
     }

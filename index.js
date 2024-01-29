@@ -11,7 +11,7 @@ const seedDatabase = require("./scripts/flightData");
 const Passenger = require("./models/passenger");
 const Razorpay = require("razorpay");
 const crypto = require('crypto');
-const { v4: uuidv4 } = require('uuid');
+
 
 
 
@@ -19,6 +19,7 @@ const { v4: uuidv4 } = require('uuid');
 const authRoutes = require("./routes/auth");
 const User = require("./models/users");
 const Flight = require("./models/flight");
+const Feedback = require('./models/feedback')
 
 // Create an Express application
 const app = express();
@@ -141,6 +142,7 @@ app.post("/api/submitTravelDetails", authentication, async (req, res) => {
       flightName,
       price,
       flightClass,
+      flightId,
       date,
     } = req.body;
     const { Adult, Child } = additionalPassengers;
@@ -176,12 +178,14 @@ app.post("/api/submitTravelDetails", authentication, async (req, res) => {
       flightName,
       flightClass,
       price: totalPrice,  // Use totalPrice instead of the original price
+      flightId,  // Include the flightId in the Passenger instance
       date,
       userId: req.userInfo.userId,
     });
 
     // Log the passenger object before saving
     console.log("Passenger Object before Save:", passenger);
+    console.log("FlightId before Save:", flightId);
 
     // Attempt to save the passenger
     await passenger.save();
@@ -259,6 +263,19 @@ app.post('/order/validate', async (req,res) => {
     console.log(error)
   }
 })
+
+// API endpoint to handle feedback submission
+app.post('/api/submitFeedback', async (req, res) => {
+  try {
+      const { name, feedback } = req.body;
+      const newFeedback = new Feedback({ name, feedback });
+      await newFeedback.save();
+      res.status(200).json({ success: true, message: 'Feedback submitted successfully.' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
 // Start the server
 app.listen(port, () => {

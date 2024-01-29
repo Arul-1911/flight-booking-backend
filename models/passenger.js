@@ -76,6 +76,11 @@ const passengerSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  flightId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Flight',
+   
+  },
 });
 
 const Passenger = mongoose.model("Passenger", passengerSchema);
