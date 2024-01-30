@@ -9,6 +9,22 @@ const passengerSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  passengers: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      gender: {
+        type: String,
+        required: true,
+      },
+      isChild: {
+        type: Boolean,
+        required: true,
+      },
+    },
+  ],
   mainPassenger: {
     name: {
       type: String,
@@ -31,30 +47,6 @@ const passengerSchema = new mongoose.Schema({
       required: true,
     },
   },
-  adultDetails: [
-    {
-      name: {
-        type: String,
-        // required: true,
-      },
-      gender: {
-        type: String,
-        // required: true,
-      },
-    },
-  ],
-  childDetails: [
-    {
-      name: {
-        type: String,
-        // required: true,
-      },
-      gender: {
-        type: String,
-        // required: true,
-      },
-    },
-  ],
   flightName: {
     type: String,
     required: true,
@@ -79,7 +71,6 @@ const passengerSchema = new mongoose.Schema({
   flightId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Flight',
-   
   },
 });
 
