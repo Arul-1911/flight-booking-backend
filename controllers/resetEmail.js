@@ -30,7 +30,7 @@ const resetEmailController = {
         from:"learningsformyself123@gmail.com",
         to:email,
         subject:"Password Reset Link",
-        text:`Click the following link to reset your password: http://localhost:3000/resetpassword/${token}`,
+        text:`Click the following link to reset your password: https://kiwi-flight-booking.vercel.app/resetpassword/${token}`,
       }
 
       await transporter.sendMail(mailoptions); // sending password reset link to the reqsted mailid
